@@ -24,9 +24,9 @@ Stockage objet du projet. Source de vérité des données dans le cloud :
 | Contrôle d'accès | Uniforme | Droits gérés au niveau du bucket, plus simple |
 | Espace de noms hiérarchique | Désactivé | Option irréversible, inutile ici |
 | Rapid Cache | Désactivé | Service supplémentaire, inutile pour ce volume |
-| Suppression réversible (soft delete) | Désactivée (rétention 0) | Sinon les objets supprimés restent facturés pendant la rétention ; les données restent récupérables depuis Zenodo |
+| Suppression réversible (soft delete) | Désactivée | Sinon, un fichier supprimé reste facturé 7 jours. Les données sont de toute façon sur Zenodo |
 
-**Statut** : données envoyées le 2026-09-28, 15 771 fichiers (4,6 Gio), comptages vérifiés côté bucket.
+**Statut** : données envoyées le 2026-09-28. 15 771 fichiers, 4,6 Go. Le nombre de fichiers a été vérifié.
 
 ## Arborescence
 
@@ -60,7 +60,7 @@ gs://prc2025/
 
 - Dataset : Zenodo, https://doi.org/10.5281/zenodo.19184661 (licence CC BY 4.0)
 - Taille totale : 4,9 Go (flights_train.zip 3,3 Go, flights_rank.zip 631,7 Mo, flights_final.zip 982,8 Mo, le reste < 4 Mo par fichier)
-- Chaque fichier a une empreinte MD5 sur la page Zenodo : vérifiée avec `md5sum -c` le 2026-09-28 (13/13 OK).
+- Chaque fichier a une empreinte MD5 sur la page Zenodo : vérifiée le 2026-09-28 avec `md5sum -c`, les 13 fichiers sont bons.
 
 ## Commandes utiles
 
