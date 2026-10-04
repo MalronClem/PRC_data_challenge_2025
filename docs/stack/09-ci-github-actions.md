@@ -1,18 +1,18 @@
-# 09 — Intégration continue (GitHub Actions)
+# 09 — Continuous integration (GitHub Actions)
 
-## Rôle
+## Role
 
-À chaque push sur `main` et à chaque pull request, cloner le repo sur une machine neuve et relancer les vérifications du projet.
+On every push to `main` and every pull request, clone the repo on a fresh machine and re-run the project's checks.
 
-## Pourquoi ce choix
+## Why this choice
 
-- **Personne ne peut y échapper** : un hook local se contourne (`git commit --no-verify`, `pre-commit install` oublié), la CI tourne quoi qu'il arrive.
-- **Preuve que le projet s'installe de zéro** : un `uv.lock` incohérent ou une dépendance manquante casse ici, pas chez la personne qui clone.
-- **GitHub Actions** : intégré au repo, gratuit pour ce volume, badge vert/rouge visible sur chaque commit.
+- **Nobody can skip it**: a local hook can be bypassed (`git commit --no-verify`, forgotten `pre-commit install`), the CI runs no matter what.
+- **Proof that the project installs from scratch**: an inconsistent `uv.lock` or a missing dependency breaks here, not for the person who clones.
+- **GitHub Actions**: built into the repo, free for this volume, green/red badge visible on each commit.
 
 ## Configuration
 
-`.github/workflows/ci.yml` :
+`.github/workflows/ci.yml`:
 
 ```yaml
 name: CI
@@ -32,24 +32,24 @@ jobs:
       - run: uv run pre-commit run --all-files
 ```
 
-| Élément | Rôle |
+| Element | Role |
 |---|---|
-| `on` | déclencheurs : push sur `main`, toute pull request |
-| `runs-on: ubuntu-latest` | machine Linux neuve et jetable |
-| `actions/checkout` | récupère le code |
-| `astral-sh/setup-uv` | installe uv |
-| `uv sync --locked` | installe exactement `uv.lock` ; échoue si le lock ne correspond plus à `pyproject.toml` |
-| `pre-commit run --all-files` | les **mêmes** vérifications qu'en local : une seule source de règles |
+| `on` | triggers: push to `main`, any pull request |
+| `runs-on: ubuntu-latest` | fresh, disposable Linux machine |
+| `actions/checkout` | fetches the code |
+| `astral-sh/setup-uv` | installs uv |
+| `uv sync --locked` | installs exactly `uv.lock`; fails if the lock no longer matches `pyproject.toml` |
+| `pre-commit run --all-files` | the **same** checks as locally: a single source of rules |
 
-Structure d'un workflow : un workflow contient des **jobs**, un job contient des **steps** (commande `run` ou action toute faite `uses`).
+Workflow structure: a workflow contains **jobs**, a job contains **steps** (a `run` command or a ready-made `uses` action).
 
-**Statut** : en place, première exécution verte le 2026-09-27.
+**Status**: in place, first green run on 2026-09-27.
 
-## À ajouter plus tard
+## To add later
 
-- `uv run pytest` quand des tests existeront (pytest échoue s'il ne trouve aucun test).
-- Protection de la branche `main` sur GitHub : interdire de fusionner si la CI est rouge.
+- `uv run pytest` once tests exist (pytest fails if it finds no test).
+- Branch protection on `main` on GitHub: forbid merging when the CI is red.
 
-## Où le retrouver
+## Where to find it
 
-Repo GitHub → onglet **Actions** : historique des exécutions et journaux de chaque étape.
+GitHub repo → **Actions** tab: run history and logs for each step.

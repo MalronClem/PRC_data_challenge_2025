@@ -1,37 +1,37 @@
 # 07 — VS Code
 
-## Rôle
+## Role
 
-Éditeur du projet : écriture du code, notebooks d'exploration, débogage, terminal intégré.
+Project editor: writing code, exploration notebooks, debugging, integrated terminal.
 
-## Pourquoi ce choix
+## Why this choice
 
-- **PyCharm écarté** : excellent en refactoring, mais le support Jupyter nécessite la version Pro et l'outil est plus lourd.
-- **VS Code retenu** : notebooks Jupyter intégrés gratuitement, léger, extensions Remote SSH / Dev Containers si l'entraînement passe sur une machine distante.
+- **PyCharm ruled out**: excellent at refactoring, but Jupyter support requires the Pro edition and the tool is heavier.
+- **VS Code chosen**: free built-in Jupyter notebooks, lightweight, Remote SSH / Dev Containers extensions if training moves to a remote machine.
 
-Installation : paquet `.deb` officiel (`code`). Profil réinitialisé le 2026-09-27 (suppression de `~/.vscode` et `~/.config/Code`) pour repartir d'une base propre.
+Installation: official `.deb` package (`code`). Profile reset on 2026-09-27 (removed `~/.vscode` and `~/.config/Code`) to start from a clean base.
 
-## Extensions installées
+## Installed extensions
 
-| Extension | Éditeur | Rôle |
+| Extension | Publisher | Role |
 |---|---|---|
-| Python | Microsoft | support Python ; installe aussi **Pylance** (autocomplétion, analyse) et **Python Debugger** |
-| Jupyter | Microsoft | notebooks `.ipynb` |
-| Ruff | Astral Software | formatage et linting (voir 08) |
+| Python | Microsoft | Python support; also installs **Pylance** (autocompletion, analysis) and **Python Debugger** |
+| Jupyter | Microsoft | `.ipynb` notebooks |
+| Ruff | Astral Software | formatting and linting (see 08) |
 
-Toujours vérifier l'éditeur : des copies publiées par d'autres existent.
+Always check the publisher: copies published by others exist.
 
-## Réglages : utilisateur et projet
+## Settings: user and project
 
-- **Utilisateur** (`~/.config/Code/User/settings.json`) : préférences personnelles (thème, police), tous projets confondus.
-- **Projet** (`.vscode/settings.json`, versionné) : règles propres au projet, identiques pour quiconque l'ouvre.
+- **User** (`~/.config/Code/User/settings.json`): personal preferences (theme, font), for all projects.
+- **Project** (`.vscode/settings.json`, versioned): project-specific rules, the same for anyone who opens it.
 
 ```jsonc
 {
-  // Python du projet
+  // Project Python
   "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
 
-  // Formater les fichiers Python avec Ruff à chaque enregistrement
+  // Format Python files with Ruff on every save
   "[python]": {
     "editor.defaultFormatter": "charliermarsh.ruff",
     "editor.formatOnSave": true
@@ -39,18 +39,19 @@ Toujours vérifier l'éditeur : des copies publiées par d'autres existent.
 }
 ```
 
-- `${workspaceFolder}` : dossier du projet, le chemin fonctionne quel que soit l'emplacement du clone.
-- `"[python]"` : réglages appliqués aux seuls fichiers Python.
-- Format JSONC : JSON avec commentaires `//`, accepté par VS Code.
+- `${workspaceFolder}`: the project folder, so the path works wherever the clone lives.
+- `"[python]"`: settings applied to Python files only.
+- JSONC format: JSON with `//` comments, accepted by VS Code.
 
-## Vérifications
+## Checks
 
-1. Barre d'état en bas à droite : l'interpréteur affiché doit être `.venv`. Sinon `Ctrl+Shift+P` → `Python: Select Interpreter`.
-2. Nouveau terminal (`` Ctrl+Shift+` ``) : `which python` doit renvoyer `…/PRC_data_challenge_2025/.venv/bin/python`. L'activation place `.venv/bin` en tête du `PATH` (`echo $PATH`).
+1. Status bar, bottom right: the interpreter shown must be `.venv`. Otherwise `Ctrl+Shift+P` → `Python: Select Interpreter`.
+2. New terminal (`` Ctrl+Shift+` ``): `which python` must return `…/PRC_data_challenge_2025/.venv/bin/python`. Activation puts `.venv/bin` first in `PATH` (`echo $PATH`).
 
-## Pièges connus
+## Known pitfalls
 
-- Un fichier de configuration mal nommé ne produit **aucune erreur**, il est simplement ignoré (vécu : `setting.json` au lieu de `settings.json`). Quand une config « ne fait rien », vérifier d'abord le nom exact et l'emplacement.
-- Un onglet ouvert avec `Ctrl+N` (« Untitled-1 ») n'est pas un fichier Python : créer les fichiers depuis l'explorateur, avec leur extension.
-- Un terminal ouvert **avant** le choix de l'interpréteur n'active pas `.venv` : en ouvrir un nouveau.
-- Au premier lancement, répondre « Yes, I trust the authors » : en mode restreint, les extensions Python sont désactivées.
+- A misnamed configuration file produces **no error**, it is simply ignored (happened: `setting.json` instead of `settings.json`). When a config "does nothing", first check the exact name and location.
+- A tab opened with `Ctrl+N` ("Untitled-1") is not a Python file: create files from the explorer, with their extension.
+- A terminal opened **before** choosing the interpreter does not activate `.venv`: open a new one.
+- On first launch, answer "Yes, I trust the authors": in restricted mode, Python extensions are disabled.
+- When a notebook file is changed on disk (a pre-commit hook, a script), close and reopen it before editing: saving the old open version overwrites the change.

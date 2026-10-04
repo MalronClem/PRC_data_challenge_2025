@@ -1,34 +1,34 @@
 # 02 — Cloud Storage
 
-## Rôle
+## Role
 
-Stockage objet du projet. Source de vérité des données dans le cloud :
+Object storage for the project. Source of truth for the data in the cloud:
 
-- zone `raw/` : les données du challenge telles que publiées, jamais modifiées ;
-- zone `processed/` : les données produites par le projet (tableau de features, etc.).
+- `raw/` zone: the challenge data as published, never modified;
+- `processed/` zone: data produced by the project (feature table, etc.).
 
-## Pourquoi ce choix
+## Why this choice
 
-- **Cloudflare R2 écarté** : offre gratuite plus généreuse (10 Go, sans frais de sortie), mais BigQuery ne sait pas lire R2 (seulement Cloud Storage, Amazon S3 et Azure Blob Storage). Il aurait fallu copier les données.
-- **Cloud Storage retenu** : BigQuery lit nativement les fichiers Parquet d'un bucket via des tables externes. Stack homogène et courante en entreprise.
+- **Cloudflare R2 ruled out**: more generous free offer (10 GB, no egress fees), but BigQuery cannot read R2 (only Cloud Storage, Amazon S3 and Azure Blob Storage). The data would have had to be copied.
+- **Cloud Storage chosen**: BigQuery natively reads Parquet files in a bucket through external tables. A consistent stack, common in industry.
 
-## Configuration du bucket
+## Bucket configuration
 
-| Paramètre | Valeur | Raison |
+| Setting | Value | Reason |
 |---|---|---|
-| Nom | `gs://prc2025` | Unique au niveau mondial |
-| Type d'emplacement | Region | Le free tier ne s'applique qu'en mono-région US |
-| Région | `us-central1` | Free tier limité à us-central1, us-east1, us-west1 |
-| Classe de stockage | Standard | Seule classe couverte par le free tier |
-| Accès public | Bloqué (protection activée) | Aucune raison d'exposer les données |
-| Contrôle d'accès | Uniforme | Droits gérés au niveau du bucket, plus simple |
-| Espace de noms hiérarchique | Désactivé | Option irréversible, inutile ici |
-| Rapid Cache | Désactivé | Service supplémentaire, inutile pour ce volume |
-| Suppression réversible (soft delete) | Désactivée | Sinon, un fichier supprimé reste facturé 7 jours. Les données sont de toute façon sur Zenodo |
+| Name | `gs://prc2025` | Globally unique |
+| Location type | Region | The free tier only applies to single US regions |
+| Region | `us-central1` | Free tier limited to us-central1, us-east1, us-west1 |
+| Storage class | Standard | Only class covered by the free tier |
+| Public access | Blocked (prevention enabled) | No reason to expose the data |
+| Access control | Uniform | Permissions managed at bucket level, simpler |
+| Hierarchical namespace | Disabled | Irreversible option, not needed here |
+| Rapid Cache | Disabled | Extra service, not needed for this volume |
+| Soft delete | Disabled | Otherwise a deleted file stays billed for 7 days. The data is on Zenodo anyway |
 
-**Statut** : données envoyées le 2026-09-28. 15 771 fichiers, 4,6 Go. Le nombre de fichiers a été vérifié.
+**Status**: data uploaded on 2026-09-28. 15,771 files, 4.6 GB. File count checked.
 
-## Arborescence
+## Layout
 
 ```
 gs://prc2025/
@@ -38,49 +38,49 @@ gs://prc2025/
     train/
       flightlist.parquet
       fuel.parquet
-      flights/          (11 037 fichiers, un par vol)
+      flights/          (11,037 files, one per flight)
     rank/
       flightlist.parquet
       fuel.parquet
       fuel_submit.parquet
-      flights/          (1 888 fichiers)
+      flights/          (1,888 files)
     final/
       flightlist.parquet
       fuel.parquet
       fuel_submit.parquet
-      flights/          (2 836 fichiers)
+      flights/          (2,836 files)
   processed/
 ```
 
-- Un dossier par phase : le même code fonctionne pour les trois, seul le nom de phase change.
-- `rank/` et `final/` servent d'évaluation finale : **ne pas les utiliser pendant le développement**.
-- Pas de zips dans le bucket : la source brute de référence reste Zenodo, immuable et re-téléchargeable.
+- One folder per phase: the same code works for all three, only the phase name changes.
+- `rank/` and `final/` are for final evaluation: **do not use them during development**.
+- No zip files in the bucket: the reference raw source stays Zenodo, immutable and downloadable again.
 
-## Source des données
+## Data source
 
-- Dataset : Zenodo, https://doi.org/10.5281/zenodo.19184661 (licence CC BY 4.0)
-- Taille totale : 4,9 Go (flights_train.zip 3,3 Go, flights_rank.zip 631,7 Mo, flights_final.zip 982,8 Mo, le reste < 4 Mo par fichier)
-- Chaque fichier a une empreinte MD5 sur la page Zenodo : vérifiée le 2026-09-28 avec `md5sum -c`, les 13 fichiers sont bons.
+- Dataset: Zenodo, https://doi.org/10.5281/zenodo.19184661 (CC BY 4.0 licence)
+- Total size: 4.9 GB (flights_train.zip 3.3 GB, flights_rank.zip 631.7 MB, flights_final.zip 982.8 MB, the rest < 4 MB per file)
+- Each file has an MD5 checksum on the Zenodo page: checked on 2026-09-28 with `md5sum -c`, all 13 files are fine.
 
-## Commandes utiles
+## Useful commands
 
 ```bash
-gcloud storage ls gs://prc2025/                 # lister le contenu
-gcloud storage ls -r gs://prc2025/raw/train/    # lister récursivement
-gcloud storage du -s gs://prc2025/              # taille totale
-gcloud storage cp -r <dossier_local> gs://prc2025/raw/train/   # envoyer un dossier
-gcloud storage rsync <dossier_local> gs://prc2025/raw --recursive   # synchroniser (reprend si interrompu)
+gcloud storage ls gs://prc2025/                 # list content
+gcloud storage ls -r gs://prc2025/raw/train/    # list recursively
+gcloud storage du -s gs://prc2025/              # total size
+gcloud storage cp -r <local_folder> gs://prc2025/raw/train/   # upload a folder
+gcloud storage rsync <local_folder> gs://prc2025/raw --recursive   # sync (resumes if interrupted)
 ```
 
-## Coûts et limites (free tier)
+## Costs and limits (free tier)
 
-- 5 Go-mois de stockage Standard, régions US uniquement
-- 5 000 opérations de classe A (écritures, listings) par mois
-- 50 000 opérations de classe B (lectures) par mois
-- 100 Go de transfert sortant depuis l'Amérique du Nord par mois
+- 5 GB-months of Standard storage, US regions only
+- 5,000 class A operations (writes, listings) per month
+- 50,000 class B operations (reads) per month
+- 100 GB of egress from North America per month
 
-Estimations pour ce projet :
+Estimates for this project:
 
-- Déposer les 15 761 fichiers de trajectoires un par un : ~15 761 opérations de classe A, soit environ 0,05 $ au-delà du quota.
-- Lire tout le train une fois : 11 037 opérations de classe B, soit ~4 lectures complètes gratuites par mois.
-- Chaque lecture complète du dataset depuis la machine locale consomme ~4,9 Go du quota de transfert sortant.
+- Uploading the 15,761 trajectory files one by one: ~15,761 class A operations, about $0.05 beyond the quota.
+- Reading the whole train set once: 11,037 class B operations, i.e. ~4 free full reads per month.
+- Each full read of the dataset from the local machine uses ~4.9 GB of the egress quota.
