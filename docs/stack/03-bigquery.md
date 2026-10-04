@@ -35,7 +35,7 @@ BigQuery fait le travail lourd sur les millions de points de trajectoire (filtre
 
 - `fuel_*` : l'identifiant du vol (`flight_id`), le début et la fin de l'intervalle (`start`, `end`) et le carburant brûlé en kg (`fuel_kg`). C'est `fuel_kg` qu'il faut prédire.
 - `flights_*` : pour chaque point du vol, l'heure (`timestamp`), la position, l'altitude, les vitesses et le type d'avion.
-- **À vérifier** : `start`, `end` et `timestamp` sont des nombres, pas des dates. Il faut trouver leur unité (secondes ? millisecondes ?) avant de relier les trajectoires au carburant.
+- `start`, `end` et `timestamp` sont des entiers en **nanosecondes** depuis 1970 (UTC). Voir [`docs/exploration.md`](../exploration.md) (en anglais).
 
 ## Répartition du travail SQL / Python (à affiner)
 
