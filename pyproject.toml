@@ -3,7 +3,7 @@ name = "prc-fuel-burn-2025"
 version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
-    "google-cloud-bigquery[pandas]>=3.45.2",
+    "google-cloud-bigquery[bqstorage,pandas]>=3.45.2",
     "google-cloud-storage>=3.15.0",
     "lightgbm>=4.7.0",
     "openap>=2.6.2",
