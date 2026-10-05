@@ -31,6 +31,8 @@ Installed version: uv 0.12.17 (via snap, `/snap/bin/uv`). Python 3.12.3 (system)
   - `google-cloud-bigquery[pandas]`: the `[pandas]` extra enables `.to_dataframe()` on a query result
   - `google-cloud-storage`
   - `openap`
+  - `lightgbm`, the first real model
+  - `scikit-learn`, needed by `LGBMRegressor`. We'll also use it for cross-validation later
 - **`dev` group** (needed to develop, not to run): `ruff`, `pytest`, `ipykernel`, `pre-commit`, `nbstripout`, `matplotlib`.
   Everything is versioned, dev group included. The difference: `uv sync --no-dev` installs only what is needed to run (e.g. a deployment container).
 
