@@ -1,6 +1,6 @@
 # Data exploration (train)
 
-Summary of the notebooks in [`notebooks/`](../notebooks/). Each finding points to the notebook that shows it. Only the **train** set was explored; `rank` and `final` are still to check.
+Summary of the notebooks in [`notebooks/`](../notebooks/). Each finding points to the notebook that shows it. Train was explored in depth. For rank and final we only checked the structure so far (see [Test sets](#test-sets-rank-and-final)).
 
 ## The storyline
 
@@ -132,12 +132,31 @@ Method: each flight's average fuel rate is compared with the other flights **of 
 
 ### Next steps
 
-1. **Baseline**: a first simple model without trajectory (duration, aircraft type…), to get a reference score.
-2. **Trajectory features** on covered intervals, measuring the gain over the baseline.
-3. **OpenAP**: a physics-based fuel estimate used as a model feature (hybrid approach). Mass is unknown and will have to be assumed.
+1. ~~Baseline without trajectory, to get a reference score.~~ Done, scores are in [`experiments.md`](experiments.md).
+2. Move data loading and features into `src/prc_fuel/`, so train, rank and final go through the same code.
+3. Trajectory features on the intervals that have a trajectory, and check the gain over the baseline.
+4. OpenAP: a physics-based fuel estimate used as a feature. Mass is unknown, so we'll have to assume it.
+
+## Test sets (rank and final)
+
+Looked at in [`explore_rank_final`](../notebooks/explore_rank_final.ipynb), plus what the challenge website says.
+
+| Set | Flights from | Intervals | Flights | During the challenge |
+|---|---|---|---|---|
+| train | April to August 2025 | 131,530 | 11,037 | `fuel_kg` given to teams |
+| rank | September 2025 | 24,289 | 1,888 | phase 1 (1 Oct to 9 Nov), score shown on the leaderboard |
+| final | October 2025 | 37,456 | 2,836 | phase 2 (10 to 30 Nov), score hidden until the end |
+
+The test sets come after the training period, so the model has to predict months it has never seen. Our random `val` doesn't test that. Validating on August only would be closer to the real setting.
+
+The true `fuel_kg` is in `fuel_rank` and `fuel_final`, which means we can score ourselves the same way the jury did. The `fuel_submit_*` tables have the same rows with an empty `fuel_kg`: they're the templates to fill, and every row has to match on `idx`, `flight_id`, `start` and `end`.
+
+`fuel_submit_final` holds rank and final together (61,745 rows), and the official final ranking was computed on all of it. Careful with `idx` though: it starts at 0 in every table, so `idx` 0 in `fuel_submit_final` is a rank interval while `idx` 0 in `fuel_final` is a final one. Joins should use `flight_id`, `start` and `end`.
+
+The first flight of `final` looks different from what we saw in train: very short intervals (40 s to 4 min), gaps between them, values in pounds. Maybe the mix of measurement sources isn't the same.
 
 ## Open questions
 
-- `rank` and `final` sets not explored: same structure? New airports or aircraft types? Comparable trajectory coverage?
-- Expected format of `fuel_submit_rank` / `fuel_submit_final`.
+- Do rank and final have new airports or aircraft types? The same trajectory coverage? The same mix of measurement sources?
+- Is `final` only October? The website says "maybe Sep and Oct".
 - The B788 case (11% of flights flagged): rule artefact or real subgroup?

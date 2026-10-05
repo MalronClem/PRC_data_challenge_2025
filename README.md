@@ -16,9 +16,12 @@ uv run nbstripout --install  # strip notebook outputs from commits (local git co
 ## Project layout
 
 ```
-src/prc_fuel/   project package
-sql/            BigQuery scripts (external tables on gs://prc2025/raw)
-docs/stack/     technical choices and setup of each tool
+src/prc_fuel/          project package
+notebooks/             data exploration and models
+sql/                   BigQuery scripts (external tables on gs://prc2025/raw)
+docs/exploration.md    data exploration findings
+docs/experiments.md    experiment log: data, features, model, parameters, scores
+docs/stack/            technical choices and setup of each tool
 ```
 
 ## Data and references
