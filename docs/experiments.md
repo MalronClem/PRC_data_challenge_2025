@@ -21,8 +21,17 @@ Unless a row says otherwise, the 385 flights in `bad_flights` are removed from t
 | 1 | 2026-10-05 | `fit`, cleaned | `aircraft_type`, `duration_s` | median fuel rate of the type × duration | global median rate for unknown types | 330 | | | 90442f3 | First reference. Same score without cleaning (329.9), the median doesn't care about extremes |
 | 2 | 2026-10-05 | `fit`, cleaned | `aircraft_type`, `duration_s`, `since_takeoff_s`, `before_landing_s` | LightGBM | defaults, `random_state=42` | 299 | | | d5572cf | 9% better than #1 |
 | 3 | 2026-10-05 | `fit`, not cleaned | same as #2 | LightGBM | same as #2 | 305 | | | d5572cf | Worse than #2, so the cleaning stays |
+| 4 | 2026-10-05 | `fit`, cleaned | same as #2 | LightGBM | same as #2 | 299.7 | | | 6394943 | Same as #2 but through the pipeline (`train.py`). Cleaning is now computed on `fit` only, hence 102,065 intervals instead of 102,001 |
+| 5 | 2026-10-05 | `fit`, cleaned | `duration_s`, `aircraft_type` | LightGBM | same as #2 | 327.9 | | | 6394943 | Without the two flight phase features we're back to the baseline level: they bring the whole gain of #4 |
 
 The very first baseline run gave 213, but outliers had also been removed from `val`, so that number isn't comparable and isn't in the table.
+
+Runs from #4 on can be replayed with `train.py`:
+
+```bash
+uv run python -m prc_fuel.train                                        # 4
+uv run python -m prc_fuel.train --features duration_s aircraft_type    # 5
+```
 
 ## Adding a row
 

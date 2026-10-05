@@ -133,7 +133,7 @@ Method: each flight's average fuel rate is compared with the other flights **of 
 ### Next steps
 
 1. ~~Baseline without trajectory, to get a reference score.~~ Done, scores are in [`experiments.md`](experiments.md).
-2. Move data loading and features into `src/prc_fuel/`, so train, rank and final go through the same code.
+2. ~~Move data loading and features into `src/prc_fuel/`, so train, rank and final go through the same code.~~ Done, see the README.
 3. Trajectory features on the intervals that have a trajectory, and check the gain over the baseline.
 4. OpenAP: a physics-based fuel estimate used as a feature. Mass is unknown, so we'll have to assume it.
 

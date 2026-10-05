@@ -13,6 +13,26 @@ uv run pre-commit install    # enable git hooks
 uv run nbstripout --install  # strip notebook outputs from commits (local git config)
 ```
 
+## Training
+
+```bash
+uv run python -m prc_fuel.train                                   # all features
+uv run python -m prc_fuel.train --features duration_s aircraft_type
+```
+
+It loads the train set, splits it by flight (80/20), removes outlier flights from the training part, trains LightGBM and prints the RMSE on the validation part. The first run queries BigQuery and caches the result in `data/`; use `uv run python -m prc_fuel.load train --refresh` after changing the query.
+
+The pipeline is split into small modules in `src/prc_fuel/`:
+
+| Module | Does |
+|---|---|
+| `load.py` | queries fuel intervals with flight and airport info (`train`, `rank` or `final`) |
+| `split.py` | random split by flight |
+| `clean.py` | removes outlier flights (training data only) |
+| `features.py` | one function per feature, and `build_features` to pick some |
+| `evaluate.py` | RMSE |
+| `train.py` | runs everything |
+
 ## Project layout
 
 ```
