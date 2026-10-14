@@ -3,11 +3,9 @@ from prc_fuel.load import load
 from prc_fuel.split import split
 
 
-def clean(df):
+def rate_outliers(df):
     df = df.assign(
         duration_s=duration_s(df),
-        since_takeoff_s=since_takeoff_s(df),
-        before_landing_s=before_landing_s(df),
     )
 
     flights = df.groupby("flight_id").agg(
@@ -29,13 +27,25 @@ def clean(df):
         (flights["fuel_rate_kg_per_s"] < flights["lower_bound"])
         | (flights["fuel_rate_kg_per_s"] > flights["upper_bound"])
     ]
+    return set(outliers.index)
+
+
+def ground_outliers(df):
+
+    df = df.assign(
+        since_takeoff_s=since_takeoff_s(df),
+        before_landing_s=before_landing_s(df),
+    )
 
     ground_overflow = df[
         (df["since_takeoff_s"] < -1800) | (df["before_landing_s"] < -1800)
     ]
     ground_flights = ground_overflow["flight_id"].unique()
-    bad_flights = set(outliers.index) | set(ground_flights)
+    return set(ground_flights)
 
+
+def clean(df):
+    bad_flights = rate_outliers(df) | ground_outliers(df)
     return df[~df["flight_id"].isin(bad_flights)]
 
 
