@@ -23,14 +23,16 @@ Unless a row says otherwise, the 385 flights in `bad_flights` are removed from t
 | 3 | 2026-10-05 | `fit`, not cleaned | same as #2 | LightGBM | same as #2 | 305 | | | d5572cf | Worse than #2, so the cleaning stays |
 | 4 | 2026-10-05 | `fit`, cleaned | same as #2 | LightGBM | same as #2 | 299.7 | | | 6394943 | Same as #2 but through the pipeline (`train.py`). Cleaning is now computed on `fit` only, hence 102,065 intervals instead of 102,001 |
 | 5 | 2026-10-05 | `fit`, cleaned | `duration_s`, `aircraft_type` | LightGBM | same as #2 | 327.9 | | | 6394943 | Without the two flight phase features we're back to the baseline level: they bring the whole gain of #4 |
+| 6 | 2026-10-14 | `fit`, cleaned | #4 + `flight_duration_s`, `flight_progress`, `origin_icao`, `destination_icao`, `origin_elevation`, `dest_elevation`, `day_of_week`, `hour` | LightGBM | same as #2 | 297.6 | | | b8d6f68 | Only 2 kg better than #4. Flight duration is the sum of `since_takeoff_s`, `duration_s` and `before_landing_s`, so it's mostly redundant, and the airport and time features add little on their own |
 
 The very first baseline run gave 213, but outliers had also been removed from `val`, so that number isn't comparable and isn't in the table.
 
 Runs from #4 on can be replayed with `train.py`:
 
 ```bash
-uv run python -m prc_fuel.train                                        # 4
-uv run python -m prc_fuel.train --features duration_s aircraft_type    # 5
+uv run python -m prc_fuel.train --features duration_s aircraft_type since_takeoff_s before_landing_s   # 4
+uv run python -m prc_fuel.train --features duration_s aircraft_type                                    # 5
+uv run python -m prc_fuel.train                                                                        # 6
 ```
 
 ## Adding a row
