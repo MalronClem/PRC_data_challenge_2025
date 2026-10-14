@@ -1,0 +1,34 @@
+import argparse
+
+from prc_fuel.clean import clean
+from prc_fuel.evaluate import score
+from prc_fuel.features import FEATURES
+from prc_fuel.load import load
+from prc_fuel.split import split
+from prc_fuel.train import train
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Train LightGBM and print the val, clean_val and rank RMSE"
+    )
+    parser.add_argument(
+        "--features",
+        nargs="+",
+        choices=list(FEATURES),
+        default=list(FEATURES),
+    )
+    args = parser.parse_args()
+
+    df = load("train")
+    fit, val = split(df)
+    fit = clean(fit)
+    model = train(fit, args.features)
+
+    rank = load("rank")
+    val_rmse = score(model, val, args.features)
+    clean_val_rmse = score(model, clean(val), args.features)
+    rank_rmse = score(model, rank, args.features)
+
+    print(f"RMSE on val: {val_rmse:.1f} kg")
+    print(f"RMSE on clean_val: {clean_val_rmse:.1f} kg")
+    print(f"RMSE on rank: {rank_rmse:.1f} kg")
