@@ -5,7 +5,7 @@ Log of the models I tried, one row per run. Scores are RMSE in kg, and two score
 ## Evaluation sets
 
 - `val`: 20% of the train flights, drawn at random with `random_state=42`. Outlier flights are kept in it, since the test sets are noisy too. It covers the same months as training, so it says nothing about how the model holds up on later months.
-- `clean val`: `val` with its outlier flights removed (same cleaning as for training). It isn't used to pick models, since the test sets aren't clean. It only says whether a gain comes from normal flights or from outliers.
+- `clean val`: `val` without its outlier flights, both kinds (`clean_all`). It stays the same whatever the training cleaning is. It isn't used to pick models, since the test sets aren't clean. It only says whether a gain comes from normal flights or from outliers.
 - `rank`: the phase 1 test set (September 2025, 1,888 flights). Its true `fuel_kg` was published after the challenge.
 - `final`: the phase 2 test set (October 2025, 2,836 flights). The official ranking was computed on rank and final together. I'll only score on it once, at the very end.
 
@@ -13,7 +13,9 @@ For reference, the winning team got 200.83 kg on the final ranking (then 211.99 
 
 ## Cleaning
 
-Unless a row says otherwise, the 385 flights in `bad_flights` are removed from the training data (not from `val`). They are the 205 flights whose average fuel rate is a far-out value for their aircraft type, plus 189 flights with an interval starting or ending more than 30 min away from the flight. Details in the [baseline notebook](../notebooks/baseline.ipynb).
+Up to row 7, the 385 flights in `bad_flights` are removed from the training data (not from `val`). They are the 205 flights whose average fuel rate is a far-out value for their aircraft type, plus 189 flights with an interval starting or ending more than 30 min away from the flight. Details in the [baseline notebook](../notebooks/baseline.ipynb).
+
+From row 8 on, only the flights with an interval far from the flight are removed (`clean_training`). The fuel rate outliers make most of the val error but taking them out of training made the model predict too low, see the [outliers notebook](../notebooks/outliers_error.ipynb).
 
 ## Results
 
@@ -26,15 +28,16 @@ Unless a row says otherwise, the 385 flights in `bad_flights` are removed from t
 | 5 | 2026-10-05 | `fit`, cleaned | `duration_s`, `aircraft_type` | LightGBM | same as #2 | 327.9 |  | | | 6394943 | Without the two flight phase features we're back to the baseline level: they bring the whole gain of #4 |
 | 6 | 2026-10-14 | `fit`, cleaned | #4 + `flight_duration_s`, `flight_progress`, `origin_icao`, `destination_icao`, `origin_elevation`, `dest_elevation`, `day_of_week`, `hour` | LightGBM | same as #2 | 297.6 |  | | | b8d6f68 | Only 2 kg better than #4. Flight duration is the sum of `since_takeoff_s`, `duration_s` and `before_landing_s`, so it's mostly redundant, and the airport and time features add little on their own |
 | 7 | 2026-10-14 | `fit`, cleaned | same as #6 | LightGBM | same as #2 | 297.6 | 145.9 | 255.1 | | 9cc5d5c | Same model as #6, first time scored on clean val and rank. Removing the outliers from `val` halves the error, so about half of the val score comes from a few flights. Rank sits in between, it probably has fewer outliers than `val` |
+| 8 | 2026-10-14 | `fit`, off-flight intervals removed only | same as #6 | LightGBM | same as #2 | 293.8 | 167.0 | 250.7 | | d327755 | Fuel rate outliers kept in training. Better on val and rank, worse on clean val: the model predicts a bit higher for everyone, so it loses on normal flights but gains more on the big outliers. Keeping nothing out at all gave 297.0 / 248.0 in the notebook |
 
 The very first baseline run gave 213, but outliers had also been removed from `val`, so that number isn't comparable and isn't in the table.
 
-Runs from #4 on can be replayed with `run.py` (it was `train.py` before 9cc5d5c):
+Runs from #4 on can be replayed with `run.py` (it was `train.py` before 9cc5d5c), but only from the commit of the row since the cleaning changed in #8:
 
 ```bash
 uv run python -m prc_fuel.run --features duration_s aircraft_type since_takeoff_s before_landing_s   # 4
 uv run python -m prc_fuel.run --features duration_s aircraft_type                                    # 5
-uv run python -m prc_fuel.run                                                                        # 6, 7
+uv run python -m prc_fuel.run                                                                        # 8
 ```
 
 ## Adding a row
