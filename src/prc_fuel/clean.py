@@ -44,7 +44,12 @@ def ground_outliers(df):
     return set(ground_flights)
 
 
-def clean(df):
+def clean_training(df):
+    bad_flights = ground_outliers(df)
+    return df[~df["flight_id"].isin(bad_flights)]
+
+
+def clean_all(df):
     bad_flights = rate_outliers(df) | ground_outliers(df)
     return df[~df["flight_id"].isin(bad_flights)]
 
@@ -52,6 +57,6 @@ def clean(df):
 if __name__ == "__main__":
     df = load("train")
     fit, val = split(df)
-    cleaned = clean(fit)
+    cleaned = clean_training(fit)
     print("fit before cleaning:", len(fit), "intervals")
     print("fit after cleaning:", len(cleaned), "intervals")

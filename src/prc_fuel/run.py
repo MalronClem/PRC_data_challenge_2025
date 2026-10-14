@@ -1,6 +1,6 @@
 import argparse
 
-from prc_fuel.clean import clean
+from prc_fuel.clean import clean_all, clean_training
 from prc_fuel.evaluate import score
 from prc_fuel.features import FEATURES
 from prc_fuel.load import load
@@ -21,12 +21,12 @@ if __name__ == "__main__":
 
     df = load("train")
     fit, val = split(df)
-    fit = clean(fit)
+    fit = clean_training(fit)
     model = train(fit, args.features)
 
     rank = load("rank")
     val_rmse = score(model, val, args.features)
-    clean_val_rmse = score(model, clean(val), args.features)
+    clean_val_rmse = score(model, clean_all(val), args.features)
     rank_rmse = score(model, rank, args.features)
 
     print(f"RMSE on val: {val_rmse:.1f} kg")
