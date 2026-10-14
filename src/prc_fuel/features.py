@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 
 from prc_fuel.load import load
@@ -58,6 +59,23 @@ def hour(df):
     return df.start.dt.hour
 
 
+def route_distance(df):
+    # Great circle distance between the two airports, haversine formula
+    coordinates = np.radians(
+        df[["origin_latitude", "origin_longitude", "dest_latitude", "dest_longitude"]]
+    )
+
+    a = (
+        np.sin((coordinates.dest_latitude - coordinates.origin_latitude) / 2) ** 2
+        + np.cos(coordinates.origin_latitude)
+        * np.cos(coordinates.dest_latitude)
+        * np.sin((coordinates.dest_longitude - coordinates.origin_longitude) / 2) ** 2
+    )
+
+    # 6371 km is the mean Earth radius
+    return 2 * 6371 * np.arcsin(np.sqrt(a))
+
+
 FEATURES = {
     "duration_s": duration_s,
     "aircraft_type": aircraft_type,
@@ -71,6 +89,7 @@ FEATURES = {
     "dest_elevation": dest_elevation,
     "day_of_week": day_of_week,
     "hour": hour,
+    "route_distance": route_distance,
 }
 
 

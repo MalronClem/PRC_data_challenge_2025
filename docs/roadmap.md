@@ -12,11 +12,12 @@ Where the project stands and what comes next. Scores for each step are in [`expe
 
 ## Next, roughly in this order
 
-1. Trajectory features: altitude, groundspeed, vertical rate and number of points per interval, computed in BigQuery.
-2. OpenAP: a physics-based fuel estimate used as a feature. Mass is unknown, so we'll have to assume it.
-3. Intervals without trajectory (~40%): try to fill them from other flights on the same route, or at least guess the flight phase.
-4. Model: tune LightGBM (still on defaults), try CatBoost or XGBoost, maybe average a few models.
-5. Check that the choices hold on later months (rank already does part of this).
-6. Retrain on all of train, maybe rank too, and score once on final.
+1. Route distance (great circle between the two airports, haversine). Available for every flight, even without trajectory.
+2. Trajectory features: altitude, groundspeed, vertical rate, number of points and distance flown per interval, computed in BigQuery.
+3. OpenAP: a physics-based fuel estimate used as a feature. Mass is unknown, so we'll have to assume it.
+4. Intervals without trajectory (~40%): try to fill them from other flights on the same route, or at least guess the flight phase.
+5. Model: tune LightGBM (still on defaults), try CatBoost or XGBoost, maybe average a few models.
+6. Check that the choices hold on later months (rank already does part of this).
+7. Retrain on all of train, maybe rank too, and score once on final.
 
 Features first because that's where new information comes in, the model choice should matter less.
