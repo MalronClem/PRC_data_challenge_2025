@@ -72,7 +72,7 @@ def route_distance(df):
         * np.sin((coordinates.dest_longitude - coordinates.origin_longitude) / 2) ** 2
     )
 
-    # 6371 km is the mean Earth radius
+    # 6371 km is the mean earth radius
     return 2 * 6371 * np.arcsin(np.sqrt(a))
 
 

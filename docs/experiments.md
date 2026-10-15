@@ -29,6 +29,7 @@ From row 8 on, only the flights with an interval far from the flight are removed
 | 6 | 2026-10-14 | `fit`, cleaned | #4 + `flight_duration_s`, `flight_progress`, `origin_icao`, `destination_icao`, `origin_elevation`, `dest_elevation`, `day_of_week`, `hour` | LightGBM | same as #2 | 297.6 |  | | | b8d6f68 | Only 2 kg better than #4. Flight duration is the sum of `since_takeoff_s`, `duration_s` and `before_landing_s`, so it's mostly redundant, and the airport and time features add little on their own |
 | 7 | 2026-10-14 | `fit`, cleaned | same as #6 | LightGBM | same as #2 | 297.6 | 145.9 | 255.1 | | 9cc5d5c | Same model as #6, first time scored on clean val and rank. Removing the outliers from `val` halves the error, so about half of the val score comes from a few flights. Rank sits in between, it probably has fewer outliers than `val` |
 | 8 | 2026-10-14 | `fit`, off-flight intervals removed only | same as #6 | LightGBM | same as #2 | 293.8 | 167.0 | 250.7 | | d327755 | Fuel rate outliers kept in training. Better on val and rank, worse on clean val: the model predicts a bit higher for everyone, so it loses on normal flights but gains more on the big outliers. Keeping nothing out at all gave 297.0 / 248.0 in the notebook |
+| 9 | 2026-10-14 | same as #8 | #6 + `route_distance` | LightGBM | same as #2 | 294.0 | 165.7 | 248.6 | | a956a0d | Great circle distance between the airports. Small gain on clean val and rank, nothing on val. Probably close to `flight_duration_s`, which the model already had |
 
 The very first baseline run gave 213, but outliers had also been removed from `val`, so that number isn't comparable and isn't in the table.
 
@@ -37,7 +38,7 @@ Runs from #4 on can be replayed with `run.py` (it was `train.py` before 9cc5d5c)
 ```bash
 uv run python -m prc_fuel.run --features duration_s aircraft_type since_takeoff_s before_landing_s   # 4
 uv run python -m prc_fuel.run --features duration_s aircraft_type                                    # 5
-uv run python -m prc_fuel.run                                                                        # 8
+uv run python -m prc_fuel.run                                                                        # 9
 ```
 
 ## Adding a row
