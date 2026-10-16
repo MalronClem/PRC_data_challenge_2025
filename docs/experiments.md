@@ -30,6 +30,7 @@ From row 8 on, only the flights with an interval far from the flight are removed
 | 7 | 2026-10-14 | `fit`, cleaned | same as #6 | LightGBM | same as #2 | 297.6 | 145.9 | 255.1 | | 9cc5d5c | Same model as #6, first time scored on clean val and rank. Removing the outliers from `val` halves the error, so about half of the val score comes from a few flights. Rank sits in between, it probably has fewer outliers than `val` |
 | 8 | 2026-10-14 | `fit`, off-flight intervals removed only | same as #6 | LightGBM | same as #2 | 293.8 | 167.0 | 250.7 | | d327755 | Fuel rate outliers kept in training. Better on val and rank, worse on clean val: the model predicts a bit higher for everyone, so it loses on normal flights but gains more on the big outliers. Keeping nothing out at all gave 297.0 / 248.0 in the notebook |
 | 9 | 2026-10-14 | same as #8 | #6 + `route_distance` | LightGBM | same as #2 | 294.0 | 165.7 | 248.6 | | a956a0d | Great circle distance between the airports. Small gain on clean val and rank, nothing on val. Probably close to `flight_duration_s`, which the model already had |
+| 10 | 2026-10-16 | same as #8, impossible trajectory values set to NaN on every set | #9 + `n_points`, `avg_altitude`, `alt_start`, `alt_end`, `avg_groundspeed`, `avg_vertical_rate`, `avg_mach` | LightGBM | same as #2 | 292.3 | 164.4 | 242.7 | | 4105cd2 | Per interval trajectory summary from BigQuery. Thresholds come from gaps in the data ([trajectory notebook](../notebooks/trajectory_features.ipynb)), only 86 values masked. Biggest gain on rank (-5.9). Modest overall, probably because ~40% of intervals have almost no trajectory and the flight phase features already gave climb / cruise / descent |
 
 The very first baseline run gave 213, but outliers had also been removed from `val`, so that number isn't comparable and isn't in the table.
 
@@ -38,7 +39,7 @@ Runs from #4 on can be replayed with `run.py` (it was `train.py` before 9cc5d5c)
 ```bash
 uv run python -m prc_fuel.run --features duration_s aircraft_type since_takeoff_s before_landing_s   # 4
 uv run python -m prc_fuel.run --features duration_s aircraft_type                                    # 5
-uv run python -m prc_fuel.run                                                                        # 9
+uv run python -m prc_fuel.run                                                                        # 10
 ```
 
 ## Adding a row
