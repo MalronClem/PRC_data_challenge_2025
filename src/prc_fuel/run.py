@@ -17,19 +17,28 @@ if __name__ == "__main__":
         choices=list(FEATURES),
         default=list(FEATURES),
     )
+
+    parser.add_argument(
+        "--drop",
+        nargs="+",
+        choices=list(FEATURES),
+        default=[],
+    )
+
     args = parser.parse_args()
+    features = [f for f in args.features if f not in args.drop]
 
     df = load("train")
     df = mask_bad_values(df)
     fit, val = split(df)
     fit = clean_training(fit)
-    model = train(fit, args.features)
+    model = train(fit, features)
 
     rank = load("rank")
     rank = mask_bad_values(rank)
-    val_rmse = score(model, val, args.features)
-    clean_val_rmse = score(model, clean_all(val), args.features)
-    rank_rmse = score(model, rank, args.features)
+    val_rmse = score(model, val, features)
+    clean_val_rmse = score(model, clean_all(val), features)
+    rank_rmse = score(model, rank, features)
 
     print(f"RMSE on val: {val_rmse:.1f} kg")
     print(f"RMSE on clean_val: {clean_val_rmse:.1f} kg")
