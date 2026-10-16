@@ -30,6 +30,14 @@ def load(dataset, refresh=False):
                 AS alt_start,
             MAX_BY(ft.altitude, IF(ft.altitude IS NULL, NULL, ft.`timestamp`))
                 AS alt_end,
+            MIN_BY(ft.latitude, IF(ft.latitude IS NULL, NULL, ft.`timestamp`))
+                AS lat_start,
+            MAX_BY(ft.latitude, IF(ft.latitude IS NULL, NULL, ft.`timestamp`))
+                AS lat_end,
+            MIN_BY(ft.longitude, IF(ft.longitude IS NULL, NULL, ft.`timestamp`))
+                AS long_start,
+            MAX_BY(ft.longitude, IF(ft.longitude IS NULL, NULL, ft.`timestamp`))
+                AS long_end,
             AVG(ft.groundspeed) AS avg_groundspeed,
             AVG(ft.vertical_rate) AS avg_vertical_rate,
             AVG(ft.mach) AS avg_mach
@@ -62,7 +70,12 @@ def load(dataset, refresh=False):
         traj.alt_end,
         traj.avg_groundspeed,
         traj.avg_vertical_rate,
-        traj.avg_mach
+        traj.avg_mach,
+        traj.lat_start,
+        traj.lat_end,
+        traj.long_start,
+        traj.long_end
+
     FROM `prc-data-challenge-2025.prc2025.fuel_{dataset}` as f
     JOIN `prc-data-challenge-2025.prc2025.flightlist_{dataset}` as fl
         ON fl.flight_id = f.flight_id
