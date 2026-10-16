@@ -76,6 +76,34 @@ def route_distance(df):
     return 2 * 6371 * np.arcsin(np.sqrt(a))
 
 
+def n_points(df):
+    return df.n_points
+
+
+def avg_altitude(df):
+    return df.avg_altitude
+
+
+def alt_start(df):
+    return df.alt_start
+
+
+def alt_end(df):
+    return df.alt_end
+
+
+def avg_groundspeed(df):
+    return df.avg_groundspeed
+
+
+def avg_vertical_rate(df):
+    return df.avg_vertical_rate
+
+
+def avg_mach(df):
+    return df.avg_mach
+
+
 FEATURES = {
     "duration_s": duration_s,
     "aircraft_type": aircraft_type,
@@ -90,6 +118,13 @@ FEATURES = {
     "day_of_week": day_of_week,
     "hour": hour,
     "route_distance": route_distance,
+    "n_points": n_points,
+    "avg_altitude": avg_altitude,
+    "alt_start": alt_start,
+    "alt_end": alt_end,
+    "avg_groundspeed": avg_groundspeed,
+    "avg_vertical_rate": avg_vertical_rate,
+    "avg_mach": avg_mach,
 }
 
 

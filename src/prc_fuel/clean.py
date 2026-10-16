@@ -54,6 +54,15 @@ def clean_all(df):
     return df[~df["flight_id"].isin(bad_flights)]
 
 
+def mask_bad_values(df):
+    return df.assign(
+        alt_start=df.alt_start.where(df.alt_start.between(-1000, 44000)),
+        alt_end=df.alt_end.where(df.alt_end.between(-1000, 44000)),
+        avg_groundspeed=df.avg_groundspeed.where(df.avg_groundspeed < 800),
+        avg_mach=df.avg_mach.where(df.avg_mach != 0),
+    )
+
+
 if __name__ == "__main__":
     df = load("train")
     fit, val = split(df)
