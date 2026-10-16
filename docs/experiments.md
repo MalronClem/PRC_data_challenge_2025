@@ -33,6 +33,7 @@ From row 8 on, only the flights with an interval far from the flight are removed
 | 10 | 2026-10-16 | same as #8, impossible trajectory values set to NaN on every set | #9 + `n_points`, `avg_altitude`, `alt_start`, `alt_end`, `avg_groundspeed`, `avg_vertical_rate`, `avg_mach` | LightGBM | same as #2 | 292.3 | 164.4 | 242.7 | | 4105cd2 | Per interval trajectory summary from BigQuery. Thresholds come from gaps in the data ([trajectory notebook](../notebooks/trajectory_features.ipynb)), only 86 values masked. Biggest gain on rank (-5.9). Modest overall, probably because ~40% of intervals have almost no trajectory and the flight phase features already gave climb / cruise / descent |
 | 11 | 2026-10-16 | same as #10 | #10 + `implied_vr` | LightGBM | same as #2 | 294.2 | 166.0 | 242.6 | | 4c38c14 | Rate implied by the altitude change, `(alt_end - alt_start) / duration`. Nothing gained, the 1-2 kg differences are noise. The model could already get climb and descent from `alt_start`, `alt_end` and `duration_s` |
 | 12 | 2026-10-16 | same as #10 | #11 without `avg_vertical_rate` | LightGBM | same as #2 | 293.2 | 163.9 | 243.9 | | 4c38c14 | Same level as #10 and #11, so `avg_vertical_rate` brings nothing either. Kept as the reference: same score, and `implied_vr` follows the cleaned altitudes while `avg_vertical_rate` is wrong on some flights. Replayed with `--drop` from the next commit on |
+| 13 | 2026-10-16 | same as #10, boundary positions set to NaN when they imply more than 800 kt | #12 + `interval_distance` | LightGBM | same as #2 | 295.0 | 163.8 | 241.2 | | d370cfe | Great circle distance between the first and last position of the interval. Mostly useful on the ~32% of intervals without groundspeed, which only have the two acars boundary points. Those positions are a few minutes off in time, so 654 intervals of a few seconds were masked ([trajectory notebook](../notebooks/trajectory_features.ipynb)). Best rank so far, val a bit worse. Kept, rank being the more honest test |
 
 The very first baseline run gave 213, but outliers had also been removed from `val`, so that number isn't comparable and isn't in the table.
 
@@ -42,7 +43,7 @@ Runs from #4 on can be replayed with `run.py` (it was `train.py` before 9cc5d5c)
 uv run python -m prc_fuel.run --features duration_s aircraft_type since_takeoff_s before_landing_s   # 4
 uv run python -m prc_fuel.run --features duration_s aircraft_type                                    # 5
 uv run python -m prc_fuel.run                                                                        # 11
-uv run python -m prc_fuel.run --drop avg_vertical_rate                                             # 12
+uv run python -m prc_fuel.run --drop avg_vertical_rate                                             # 13
 ```
 
 ## Adding a row
