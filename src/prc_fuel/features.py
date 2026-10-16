@@ -104,6 +104,10 @@ def avg_mach(df):
     return df.avg_mach
 
 
+def implied_vr(df):
+    return (df.alt_end - df.alt_start) / (duration_s(df) / 60)
+
+
 FEATURES = {
     "duration_s": duration_s,
     "aircraft_type": aircraft_type,
@@ -125,6 +129,7 @@ FEATURES = {
     "avg_groundspeed": avg_groundspeed,
     "avg_vertical_rate": avg_vertical_rate,
     "avg_mach": avg_mach,
+    "implied_vr": implied_vr,
 }
 
 
