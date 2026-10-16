@@ -97,6 +97,10 @@ def implied_vr(df):
     return (df.alt_end - df.alt_start) / (duration_s(df) / 60)
 
 
+def interval_distance(df):
+    return haversine(df.lat_start, df.long_start, df.lat_end, df.long_end)
+
+
 def haversine(lat1, lon1, lat2, lon2):
     # Great circle distance between the two airports, haversine formula
     lat1, lon1, lat2, lon2 = (
@@ -135,6 +139,7 @@ FEATURES = {
     "avg_vertical_rate": avg_vertical_rate,
     "avg_mach": avg_mach,
     "implied_vr": implied_vr,
+    "interval_distance": interval_distance,
 }
 
 

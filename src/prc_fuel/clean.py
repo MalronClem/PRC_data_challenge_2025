@@ -1,4 +1,4 @@
-from prc_fuel.features import before_landing_s, duration_s, since_takeoff_s
+from prc_fuel.features import before_landing_s, duration_s, haversine, since_takeoff_s
 from prc_fuel.load import load
 from prc_fuel.split import split
 
@@ -55,11 +55,23 @@ def clean_all(df):
 
 
 def mask_bad_values(df):
+    # Boundary positions are wrong when the speed they imply is impossible
+    speed_kt = (
+        haversine(df.lat_start, df.long_start, df.lat_end, df.long_end)
+        / (duration_s(df) / 3600)
+        / 1.852
+    )
+    good_positions = ~(speed_kt > 800)
+
     return df.assign(
         alt_start=df.alt_start.where(df.alt_start.between(-1000, 44000)),
         alt_end=df.alt_end.where(df.alt_end.between(-1000, 44000)),
         avg_groundspeed=df.avg_groundspeed.where(df.avg_groundspeed < 800),
         avg_mach=df.avg_mach.where(df.avg_mach != 0),
+        lat_start=df.lat_start.where(good_positions),
+        lat_end=df.lat_end.where(good_positions),
+        long_start=df.long_start.where(good_positions),
+        long_end=df.long_end.where(good_positions),
     )
 
 
