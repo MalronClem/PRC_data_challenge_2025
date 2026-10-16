@@ -15,7 +15,7 @@ Where the project stands and what comes next. Scores for each step are in [`expe
 ## Next, roughly in this order
 
 1. OpenAP: a physics-based fuel estimate used as a feature. Mass is unknown, so we'll have to assume it.
-2. Intervals without trajectory (~40%): try to fill them from other flights on the same route, or at least guess the flight phase.
+2. Intervals without trajectory: the ~40% from the exploration still have their two acars boundary points, so only ~2% have neither altitude nor speed now (and ~2% only one of them, [trajectory notebook](../notebooks/trajectory_features.ipynb)). Worth doing only if the error on those turns out big: fill them from other flights on the same route, or guess the flight phase.
 3. Better cleaning: for now bad feature values are set to NaN and flights with a wrong target are dropped. Some could be replaced with real values instead, like the nearest valid altitude point instead of a bad one on the bound (directly in the SQL), groundspeed recomputed from positions, or mach estimated from groundspeed. To be checked with a run, an approximate value isn't always better than NaN.
 4. Model: tune LightGBM (still on defaults), try CatBoost or XGBoost, maybe average a few models.
 5. Check that the choices hold on later months (rank already does part of this).
