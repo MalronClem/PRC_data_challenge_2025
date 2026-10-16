@@ -60,20 +60,9 @@ def hour(df):
 
 
 def route_distance(df):
-    # Great circle distance between the two airports, haversine formula
-    coordinates = np.radians(
-        df[["origin_latitude", "origin_longitude", "dest_latitude", "dest_longitude"]]
+    return haversine(
+        df.origin_latitude, df.origin_longitude, df.dest_latitude, df.dest_longitude
     )
-
-    a = (
-        np.sin((coordinates.dest_latitude - coordinates.origin_latitude) / 2) ** 2
-        + np.cos(coordinates.origin_latitude)
-        * np.cos(coordinates.dest_latitude)
-        * np.sin((coordinates.dest_longitude - coordinates.origin_longitude) / 2) ** 2
-    )
-
-    # 6371 km is the mean earth radius
-    return 2 * 6371 * np.arcsin(np.sqrt(a))
 
 
 def n_points(df):
@@ -106,6 +95,22 @@ def avg_mach(df):
 
 def implied_vr(df):
     return (df.alt_end - df.alt_start) / (duration_s(df) / 60)
+
+
+def haversine(lat1, lon1, lat2, lon2):
+    # Great circle distance between the two airports, haversine formula
+    lat1, lon1, lat2, lon2 = (
+        np.radians(lat1),
+        np.radians(lon1),
+        np.radians(lat2),
+        np.radians(lon2),
+    )
+    a = (
+        np.sin((lat2 - lat1) / 2) ** 2
+        + np.cos(lat1) * np.cos(lat2) * np.sin((lon2 - lon1) / 2) ** 2
+    )
+    # 6371 km is the mean earth radius
+    return 2 * 6371 * np.arcsin(np.sqrt(a))
 
 
 FEATURES = {
