@@ -5,6 +5,7 @@ Log of the models I tried, one row per run. Scores are RMSE in kg, and two score
 ## Evaluation sets
 
 - `val`: 20% of the train flights, drawn at random with `random_state=42`. Outlier flights are kept in it, since the test sets are noisy too. It covers the same months as training, so it says nothing about how the model holds up on later months.
+- From run #16 on, some runs use a time split instead (`--split time`): the last 20% of flights to take off go to `val` (from ~11 July), the rest to training, like rank comes after train. It has far fewer outlier flights than the random `val`, so its scores are much lower and can't be compared with the random split rows. Rows say which split they use.
 - `clean val`: `val` without its outlier flights, both kinds (`clean_all`). It stays the same whatever the training cleaning is. It isn't used to pick models, since the test sets aren't clean. It only says whether a gain comes from normal flights or from outliers.
 - `rank`: the phase 1 test set (September 2025, 1,888 flights). Its true `fuel_kg` was published after the challenge.
 - `final`: the phase 2 test set (October 2025, 2,836 flights). The official ranking was computed on rank and final together. I'll only score on it once, at the very end.
@@ -36,6 +37,9 @@ From row 8 on, only the flights with an interval far from the flight are removed
 | 13 | 2026-10-16 | same as #10, boundary positions set to NaN when they imply more than 800 kt | #12 + `interval_distance` | LightGBM | same as #2 | 295.0 | 163.8 | 241.2 | | d370cfe | Great circle distance between the first and last position of the interval. Mostly useful on the ~32% of intervals without groundspeed, which only have the two acars boundary points. Those positions are a few minutes off in time, so 654 intervals of a few seconds were masked ([trajectory notebook](../notebooks/trajectory_features.ipynb)). Best rank so far, val a bit worse. Kept, rank being the more honest test |
 | 14 | 2026-10-18 | same as #13 | #13 + `openap_fuel` | LightGBM | same as #2 | 298.0 | 169.5 | 242.6 | | baaa20b | OpenAP fuel flow times duration, with a mass going linearly from mtow to mlw over the flight and the airspeed from mach, else groundspeed, else the distance between the bounds ([OpenAP notebook](../notebooks/openap.ipynb)). Spearman 0.93 with `fuel_kg`, but that comes from duration and aircraft size, which the model already had: within a type the fuel rates only match at 0.35-0.6. Worse everywhere, not kept |
 | 15 | 2026-10-18 | same as #13 | same as #13 | LightGBM | `learning_rate=0.05`, `n_estimators=160`, `num_leaves=127` | 288.1 | 157.0 | 247.3 | | 33e6ce1 | Parameters tuned on val with early stopping ([tuning notebook](../notebooks/model_tuning.ipynb)): more leaves was better on val and clean val, a smaller learning rate wasn't. But rank gets 6 kg worse. val flights are drawn at random from the same months as fit and have very close flights in it, bigger trees learn those details, which don't carry over to September. Not kept, tuning needs a time-based validation |
+| 16 | 2026-10-18 | time split, rest same as #13 | same as #13 | LightGBM | same as #13 | 188.0 | 159.5 | 250.4 | | 774182d | #13 with the time split. Rank is ~9 kg worse than #13 without the mid-July to August flights, recent data matters. Reference for the time split |
+| 17 | 2026-10-18 | time split | same as #13 | LightGBM | `learning_rate=0.05`, `n_estimators=75`, `num_leaves=127`, `min_child_samples=100` | 175.8 | 146.6 | 243.5 | | 774182d | Parameters tuned on the time split ([tuning notebook](../notebooks/model_tuning.ipynb)). Over 12 configs, val and rank rank them almost the same way (Spearman 0.94), unlike the random val. The difference with #15 is mostly `min_child_samples` 100 instead of 20. -12 kg on val and -7 on rank against #16. Kept as the new defaults |
+| 18 | 2026-10-18 | same as #8 (random split) | same as #13 | LightGBM | same as #17 | 298.0 | 156.8 | 241.9 | | 774182d | #17's parameters with the random split, to compare with #13. Rank doesn't move, clean val is 7 kg better and val 3 kg worse: leaves of at least 100 intervals smooth out the outlier flights. No clear reason why the rank gain of #17 disappears here |
 
 The very first baseline run gave 213, but outliers had also been removed from `val`, so that number isn't comparable and isn't in the table.
 
@@ -47,6 +51,8 @@ uv run python -m prc_fuel.run --features duration_s aircraft_type               
 uv run python -m prc_fuel.run                                                                        # 11
 uv run python -m prc_fuel.run --drop avg_vertical_rate openap_fuel                                 # 13
 uv run python -m prc_fuel.run --drop avg_vertical_rate                                             # 14
+uv run python -m prc_fuel.run --drop avg_vertical_rate openap_fuel --split time                    # 17
+uv run python -m prc_fuel.run --drop avg_vertical_rate openap_fuel                                 # 18
 ```
 
 ## Adding a row
