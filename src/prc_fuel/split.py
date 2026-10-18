@@ -11,6 +11,16 @@ def split(df, val_frac=0.2):
     return fit, val
 
 
+def split_by_time(df, val_frac=0.2):
+    # The last flights to take off go to val, like rank comes after train
+    takeoffs = df.groupby("flight_id").takeoff.first().sort_values()
+    n_val = int(len(takeoffs) * val_frac)
+    val_flights = takeoffs.index[-n_val:]
+    val = df[df.flight_id.isin(val_flights)]
+    fit = df[~df.flight_id.isin(val_flights)]
+    return fit, val
+
+
 if __name__ == "__main__":
     df = load("train")
     fit, val = split(df)

@@ -2,7 +2,12 @@ from lightgbm import LGBMRegressor, early_stopping
 
 from prc_fuel.features import build_features
 
-DEFAULT_PARAMS = {}
+DEFAULT_PARAMS = {
+    "learning_rate": 0.05,
+    "n_estimators": 75,
+    "num_leaves": 127,
+    "min_child_samples": 100,
+}
 
 
 def train(fit, features, params=None, val=None):

@@ -4,7 +4,7 @@ from prc_fuel.clean import clean_all, clean_training, mask_bad_values
 from prc_fuel.evaluate import score
 from prc_fuel.features import FEATURES
 from prc_fuel.load import load
-from prc_fuel.split import split
+from prc_fuel.split import split, split_by_time
 from prc_fuel.train import train
 
 if __name__ == "__main__":
@@ -24,13 +24,19 @@ if __name__ == "__main__":
         choices=list(FEATURES),
         default=[],
     )
+    parser.add_argument(
+        "--split",
+        choices=["random", "time"],
+        default="random",
+    )
 
     args = parser.parse_args()
     features = [f for f in args.features if f not in args.drop]
 
     df = load("train")
     df = mask_bad_values(df)
-    fit, val = split(df)
+    splitter = {"random": split, "time": split_by_time}[args.split]
+    fit, val = splitter(df)
     fit = clean_training(fit)
     model = train(fit, features)
 
