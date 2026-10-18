@@ -1,7 +1,50 @@
 import numpy as np
+import openap
 import pandas as pd
+from openap import FuelFlow, aero
 
 from prc_fuel.load import load
+
+OPENAP_TYPES = set(openap.prop.available_aircraft())
+
+
+def estimated_mass(df):
+    # Linear from mtow at takeoff to mlw at landing, the real mass is unknown
+    types = [t for t in df.aircraft_type.unique() if t.lower() in OPENAP_TYPES]
+    mtow = df.aircraft_type.map(
+        {t: openap.prop.aircraft(t.lower())["mtow"] for t in types}
+    )
+    mlw = df.aircraft_type.map(
+        {t: openap.prop.aircraft(t.lower())["mlw"] for t in types}
+    )
+    progress = flight_progress(df).clip(0, 1)
+    return mtow + progress * (mlw - mtow)
+
+
+def airspeed_kt(df):
+    # True airspeed from mach, else groundspeed, else speed between the bounds
+    tas = aero.mach2tas(df.avg_mach, df.avg_altitude * aero.ft) / aero.kts
+    dist_speed = interval_distance(df) / (duration_s(df) / 3600) / 1.852
+    dist_speed = dist_speed.where((dist_speed > 0) & (dist_speed <= 700))
+    return tas.fillna(df.avg_groundspeed).fillna(dist_speed)
+
+
+def openap_fuel(df):
+    mass = estimated_mass(df)
+    speed = airspeed_kt(df)
+    vs = implied_vr(df).fillna(0)
+    flow = pd.Series(np.nan, index=df.index)
+    for t in df.aircraft_type.unique():
+        if t.lower() not in OPENAP_TYPES:
+            continue
+        rows = df.aircraft_type == t
+        flow[rows] = FuelFlow(t.lower(), use_synonym=True).enroute(
+            mass=mass[rows].values,
+            tas=speed[rows].values,
+            alt=df.avg_altitude[rows].values,
+            vs=vs[rows].values,
+        )
+    return flow * duration_s(df)
 
 
 def build_features(df, features):
@@ -140,6 +183,7 @@ FEATURES = {
     "avg_mach": avg_mach,
     "implied_vr": implied_vr,
     "interval_distance": interval_distance,
+    "openap_fuel": openap_fuel,
 }
 
 
