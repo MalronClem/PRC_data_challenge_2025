@@ -105,11 +105,30 @@ class Blend:
         return sum(model.predict(X) for model in self.models) / len(self.models)
 
 
-def train(fit, features, params=None, val=None, algo="lightgbm"):
+class RateModel:
+    # Learns the fuel rate (kg/s) and multiplies back by the duration, so the
+    # trees don't have to learn the product themselves
+
+    def __init__(self, model):
+        self.model = model
+
+    def fit(self, X, y, X_val=None, y_val=None):
+        if X_val is None:
+            self.model.fit(X, y / X["duration_s"])
+        else:
+            self.model.fit(X, y / X["duration_s"], X_val, y_val / X_val["duration_s"])
+        return self
+
+    def predict(self, X):
+        return self.model.predict(X) * X["duration_s"].values
+
+
+def train(fit, features, params=None, val=None, algo="lightgbm", target="fuel"):
     X_fit = build_features(fit, features)
-    if algo == "blend":
-        return Blend().fit(X_fit, fit.fuel_kg)
+    model = Blend() if algo == "blend" else Model(algo, params)
+    if target == "rate":
+        model = RateModel(model)
     if val is None:
-        return Model(algo, params).fit(X_fit, fit.fuel_kg)
+        return model.fit(X_fit, fit.fuel_kg)
     X_val = build_features(val, features)
-    return Model(algo, params).fit(X_fit, fit.fuel_kg, X_val, val.fuel_kg)
+    return model.fit(X_fit, fit.fuel_kg, X_val, val.fuel_kg)

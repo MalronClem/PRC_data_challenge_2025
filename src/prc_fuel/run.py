@@ -37,6 +37,11 @@ if __name__ == "__main__":
         default="lightgbm",
     )
 
+    parser.add_argument(
+        "--target",
+        choices=["fuel", "rate"],
+        default="fuel",
+    )
     args = parser.parse_args()
     features = [f for f in args.features if f not in args.drop]
 
@@ -45,7 +50,7 @@ if __name__ == "__main__":
     splitter = {"random": split, "time": split_by_time}[args.split]
     fit, val = splitter(df)
     fit = clean_training(fit)
-    model = train(fit, features, algo=args.model)
+    model = train(fit, features, algo=args.model, target=args.target)
 
     rank = load("rank")
     rank = mask_bad_values(rank)
