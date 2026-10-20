@@ -24,10 +24,17 @@ if __name__ == "__main__":
         choices=list(FEATURES),
         default=[],
     )
+
     parser.add_argument(
         "--split",
         choices=["random", "time"],
         default="time",
+    )
+
+    parser.add_argument(
+        "--model",
+        choices=["lightgbm", "xgboost", "catboost"],
+        default="lightgbm",
     )
 
     args = parser.parse_args()
@@ -38,7 +45,7 @@ if __name__ == "__main__":
     splitter = {"random": split, "time": split_by_time}[args.split]
     fit, val = splitter(df)
     fit = clean_training(fit)
-    model = train(fit, features)
+    model = train(fit, features, algo=args.model)
 
     rank = load("rank")
     rank = mask_bad_values(rank)
