@@ -27,7 +27,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--split",
         choices=["random", "time"],
-        default="random",
+        default="time",
     )
 
     args = parser.parse_args()

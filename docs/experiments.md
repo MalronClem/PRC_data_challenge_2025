@@ -55,6 +55,8 @@ uv run python -m prc_fuel.run --drop avg_vertical_rate openap_fuel --split time 
 uv run python -m prc_fuel.run --drop avg_vertical_rate openap_fuel                                 # 18
 ```
 
+From the commit after #18 on, `--split time` is the default, so the random split has to be asked for with `--split random`.
+
 ## Adding a row
 
 - Commit first, so the row can point to the exact code.
