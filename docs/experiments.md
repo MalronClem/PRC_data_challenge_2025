@@ -40,6 +40,8 @@ From row 8 on, only the flights with an interval far from the flight are removed
 | 16 | 2026-10-18 | time split, rest same as #13 | same as #13 | LightGBM | same as #13 | 188.0 | 159.5 | 250.4 | | 774182d | #13 with the time split. Rank is ~9 kg worse than #13 without the mid-July to August flights, recent data matters. Reference for the time split |
 | 17 | 2026-10-18 | time split | same as #13 | LightGBM | `learning_rate=0.05`, `n_estimators=75`, `num_leaves=127`, `min_child_samples=100` | 175.8 | 146.6 | 243.5 | | 774182d | Parameters tuned on the time split ([tuning notebook](../notebooks/model_tuning.ipynb)). Over 12 configs, val and rank rank them almost the same way (Spearman 0.94), unlike the random val. The difference with #15 is mostly `min_child_samples` 100 instead of 20. -12 kg on val and -7 on rank against #16. Kept as the new defaults |
 | 18 | 2026-10-18 | same as #8 (random split) | same as #13 | LightGBM | same as #17 | 298.0 | 156.8 | 241.9 | | 774182d | #17's parameters with the random split, to compare with #13. Rank doesn't move, clean val is 7 kg better and val 3 kg worse: leaves of at least 100 intervals smooth out the outlier flights. No clear reason why the rank gain of #17 disappears here |
+| 19 | 2026-10-20 | time split | same as #13 | XGBoost | `enable_categorical=True`, rest default | 205.4 | 179.4 | 264.4 | | ab4ebd1 | Worse than LightGBM with its defaults (#16) everywhere. Its defaults are more aggressive (learning rate 0.3, no minimum leaf size) and in a test its error on fit was ~110 kg against 205 on val, so it overfits. Airports never seen in fit are set to NaN before predicting: putting them in a new "unknown" category instead gave 303 on val |
+| 20 | 2026-10-20 | time split | same as #13 | CatBoost | defaults (1,000 trees) | 187.1 | 159.6 | 238.1 | | ab4ebd1 | Same val as LightGBM with defaults (#16) but best rank so far, 5 kg better than tuned LightGBM (#17) without any tuning. On val tuned LightGBM is still 11 kg better though, so val and rank disagree here. Needs tuning on the time split before comparing |
 
 The very first baseline run gave 213, but outliers had also been removed from `val`, so that number isn't comparable and isn't in the table.
 
@@ -53,6 +55,8 @@ uv run python -m prc_fuel.run --drop avg_vertical_rate openap_fuel              
 uv run python -m prc_fuel.run --drop avg_vertical_rate                                             # 14
 uv run python -m prc_fuel.run --drop avg_vertical_rate openap_fuel --split time                    # 17
 uv run python -m prc_fuel.run --drop avg_vertical_rate openap_fuel                                 # 18
+uv run python -m prc_fuel.run --drop avg_vertical_rate openap_fuel --model xgboost                 # 19
+uv run python -m prc_fuel.run --drop avg_vertical_rate openap_fuel --model catboost                # 20
 ```
 
 From the commit after #18 on, `--split time` is the default, so the random split has to be asked for with `--split random`.
