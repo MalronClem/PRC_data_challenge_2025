@@ -1,5 +1,7 @@
 import argparse
 
+import pandas as pd
+
 from prc_fuel.clean import clean_all, clean_training, mask_bad_values
 from prc_fuel.evaluate import score
 from prc_fuel.features import FEATURES
@@ -42,22 +44,35 @@ if __name__ == "__main__":
         choices=["fuel", "rate"],
         default="fuel",
     )
+
+    parser.add_argument(
+        "--final",
+        action="store_true",
+        help="Train on all of train and score on rank and final, only once",
+    )
+
     args = parser.parse_args()
     features = [f for f in args.features if f not in args.drop]
 
-    df = load("train")
-    df = mask_bad_values(df)
-    splitter = {"random": split, "time": split_by_time}[args.split]
-    fit, val = splitter(df)
-    fit = clean_training(fit)
-    model = train(fit, features, algo=args.model, target=args.target)
+    df = mask_bad_values(load("train"))
+    rank = mask_bad_values(load("rank"))
 
-    rank = load("rank")
-    rank = mask_bad_values(rank)
-    val_rmse = score(model, val, features)
-    clean_val_rmse = score(model, clean_all(val), features)
-    rank_rmse = score(model, rank, features)
+    if args.final:
+        # All of train, rank and final never used for training (see roadmap)
+        model = train(clean_training(df), features, algo=args.model, target=args.target)
+        final = mask_bad_values(load("final"))
+        both = pd.concat([rank, final], ignore_index=True)
 
-    print(f"RMSE on val: {val_rmse:.1f} kg")
-    print(f"RMSE on clean_val: {clean_val_rmse:.1f} kg")
-    print(f"RMSE on rank: {rank_rmse:.1f} kg")
+        print(f"RMSE on rank: {score(model, rank, features):.1f} kg")
+        print(f"RMSE on final: {score(model, final, features):.1f} kg")
+        print(f"RMSE on rank + final: {score(model, both, features):.1f} kg")
+    else:
+        splitter = {"random": split, "time": split_by_time}[args.split]
+        fit, val = splitter(df)
+        model = train(
+            clean_training(fit), features, algo=args.model, target=args.target
+        )
+
+        print(f"RMSE on val: {score(model, val, features):.1f} kg")
+        print(f"RMSE on clean_val: {score(model, clean_all(val), features):.1f} kg")
+        print(f"RMSE on rank: {score(model, rank, features):.1f} kg")
