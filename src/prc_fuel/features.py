@@ -184,6 +184,7 @@ FEATURES = {
     "implied_vr": implied_vr,
     "interval_distance": interval_distance,
     "openap_fuel": openap_fuel,
+    "airspeed_kt": airspeed_kt,
 }
 
 
