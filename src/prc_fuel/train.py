@@ -12,6 +12,14 @@ DEFAULT_PARAMS = {
     "min_child_samples": 100,
 }
 
+# CatBoost, tuned on the time split (model_tuning notebook)
+CATBOOST_PARAMS = {
+    "learning_rate": 0.05,
+    "iterations": 226,
+    "depth": 10,
+    "l2_leaf_reg": 3,
+}
+
 
 class Model:
     # Same fit and predict for every library, categories handled in one place
@@ -39,15 +47,22 @@ class Model:
                 random_seed=42,
                 verbose=0,
                 cat_features=list(self.categories),
-                **self.params,
+                **{**CATBOOST_PARAMS, **self.params},
             )
         else:
             raise ValueError(f"unknown algo: {self.algo}")
 
         if X_val is None:
             self.model.fit(X, y)
+        elif self.algo == "catboost":
+            self.model.fit(
+                X,
+                y,
+                eval_set=(self.prepare(X_val), y_val),
+                early_stopping_rounds=50,
+            )
         else:
-            # Early stopping, only used with LightGBM
+            # Early stopping with LightGBM, not set up for xgboost
             self.model.fit(
                 X,
                 y,
@@ -73,8 +88,26 @@ class Model:
         return X
 
 
+class Blend:
+    # Plain average of LightGBM and CatBoost, 0.5 was the best weight on
+    # val_time (model_tuning notebook)
+
+    def __init__(self):
+        self.models = [Model("lightgbm"), Model("catboost")]
+
+    def fit(self, X, y):
+        for model in self.models:
+            model.fit(X, y)
+        return self
+
+    def predict(self, X):
+        return sum(model.predict(X) for model in self.models) / len(self.models)
+
+
 def train(fit, features, params=None, val=None, algo="lightgbm"):
     X_fit = build_features(fit, features)
+    if algo == "blend":
+        return Blend().fit(X_fit, fit.fuel_kg)
     if val is None:
         return Model(algo, params).fit(X_fit, fit.fuel_kg)
     X_val = build_features(val, features)

@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--model",
-        choices=["lightgbm", "xgboost", "catboost"],
+        choices=["lightgbm", "xgboost", "catboost", "blend"],
         default="lightgbm",
     )
 
