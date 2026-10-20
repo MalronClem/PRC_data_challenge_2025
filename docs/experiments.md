@@ -49,6 +49,8 @@ From row 8 on, only the flights with an interval far from the flight are removed
 | 25 | 2026-10-20 | time split | same as #13 | CatBoost, fuel rate target | same as #21 | 162.6 | 134.4 | 232.9 | | d9cf264 | Best so far everywhere: -7.4 on val, -7.0 on clean val and -5.7 on rank against the blend (#21). Trees don't have to learn the product rate × duration any more. Tested off-pipeline: weighting intervals by their duration or duration² (so the loss matches the RMSE in kg) is worse for both models (CatBoost 164.7 / 240.2 and 174.0 / 247.8 on val / rank), and averaging with LightGBM on the fuel target gains only ~1.4 kg on val (161.2 with weight 0.25), noise level |
 | 26 | 2026-10-20 | all of train, cleaned (`--final`) | same as #13 | CatBoost, fuel rate target | same as #25 | | | 233.2 | 213.7 | 4a8fd33 | Final run, model fixed in the roadmap before looking. Rank + final together (how the official ranking was computed): 221.6. Training on all of train instead of the time fit doesn't change rank (232.9 in #25) |
 
+The baseline (#1) scored with the final protocol, median rates from all of train cleaned ([baseline notebook](../notebooks/baseline.ipynb)): 266.6 on rank, 249.3 on final, 256.3 on rank + final. The final model (#26) is 34.7 kg (13.5%) better on rank + final.
+
 The very first baseline run gave 213, but outliers had also been removed from `val`, so that number isn't comparable and isn't in the table.
 
 Runs from #4 on can be replayed with `run.py` (it was `train.py` before 9cc5d5c), but only from the commit of the row since the cleaning changed in #8:
