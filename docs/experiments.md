@@ -47,6 +47,7 @@ From row 8 on, only the flights with an interval far from the flight are removed
 | 23 | 2026-10-20 | time split | same as #13 | LightGBM + CatBoost, plain average, fuel rate target | same as #21 | 167.7 | 141.2 | 234.1 | | d9cf264 | Learns `fuel_kg / duration_s` and multiplies back by the duration (`--target rate`). Better than #21 on val and rank, but worse than CatBoost alone (#25), LightGBM pulls it down |
 | 24 | 2026-10-20 | time split | same as #13 | LightGBM, fuel rate target | same as #17 | 184.9 | 161.1 | 249.0 | | d9cf264 | 9 kg worse than predicting the fuel (#17). Not the number of trees, early stopping stops at 72 and gives 184.5. Probably because every interval weighs the same when learning the rate, while the RMSE in kg weighs long intervals much more |
 | 25 | 2026-10-20 | time split | same as #13 | CatBoost, fuel rate target | same as #21 | 162.6 | 134.4 | 232.9 | | d9cf264 | Best so far everywhere: -7.4 on val, -7.0 on clean val and -5.7 on rank against the blend (#21). Trees don't have to learn the product rate × duration any more. Tested off-pipeline: weighting intervals by their duration or duration² (so the loss matches the RMSE in kg) is worse for both models (CatBoost 164.7 / 240.2 and 174.0 / 247.8 on val / rank), and averaging with LightGBM on the fuel target gains only ~1.4 kg on val (161.2 with weight 0.25), noise level |
+| 26 | 2026-10-20 | all of train, cleaned (`--final`) | same as #13 | CatBoost, fuel rate target | same as #25 | | | 233.2 | 213.7 | 4a8fd33 | Final run, model fixed in the roadmap before looking. Rank + final together (how the official ranking was computed): 221.6. Training on all of train instead of the time fit doesn't change rank (232.9 in #25) |
 
 The very first baseline run gave 213, but outliers had also been removed from `val`, so that number isn't comparable and isn't in the table.
 
@@ -67,6 +68,7 @@ uv run python -m prc_fuel.run --drop avg_vertical_rate openap_fuel --model blend
 uv run python -m prc_fuel.run --drop avg_vertical_rate openap_fuel airspeed_kt --model blend --target rate      # 23
 uv run python -m prc_fuel.run --drop avg_vertical_rate openap_fuel airspeed_kt --model lightgbm --target rate   # 24
 uv run python -m prc_fuel.run --drop avg_vertical_rate openap_fuel airspeed_kt --model catboost --target rate   # 25
+uv run python -m prc_fuel.run --drop avg_vertical_rate openap_fuel airspeed_kt --model catboost --target rate --final   # 26
 ```
 
 From the commit after #18 on, `--split time` is the default, so the random split has to be asked for with `--split random`.
