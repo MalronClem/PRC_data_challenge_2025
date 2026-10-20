@@ -42,6 +42,7 @@ From row 8 on, only the flights with an interval far from the flight are removed
 | 18 | 2026-10-18 | same as #8 (random split) | same as #13 | LightGBM | same as #17 | 298.0 | 156.8 | 241.9 | | 774182d | #17's parameters with the random split, to compare with #13. Rank doesn't move, clean val is 7 kg better and val 3 kg worse: leaves of at least 100 intervals smooth out the outlier flights. No clear reason why the rank gain of #17 disappears here |
 | 19 | 2026-10-20 | time split | same as #13 | XGBoost | `enable_categorical=True`, rest default | 205.4 | 179.4 | 264.4 | | ab4ebd1 | Worse than LightGBM with its defaults (#16) everywhere. Its defaults are more aggressive (learning rate 0.3, no minimum leaf size) and in a test its error on fit was ~110 kg against 205 on val, so it overfits. Airports never seen in fit are set to NaN before predicting: putting them in a new "unknown" category instead gave 303 on val |
 | 20 | 2026-10-20 | time split | same as #13 | CatBoost | defaults (1,000 trees) | 187.1 | 159.6 | 238.1 | | ab4ebd1 | Same val as LightGBM with defaults (#16) but best rank so far, 5 kg better than tuned LightGBM (#17) without any tuning. On val tuned LightGBM is still 11 kg better though, so val and rank disagree here. Needs tuning on the time split before comparing |
+| 21 | 2026-10-20 | time split | same as #13 | LightGBM + CatBoost, plain average | LightGBM as #17, CatBoost `depth=10`, `l2_leaf_reg=3`, `learning_rate=0.05`, 226 trees | 170.0 | 141.4 | 238.6 | | 491bb87 | CatBoost tuned on the time split ([tuning notebook](../notebooks/model_tuning.ipynb)): best 179.6 on val, still behind LightGBM, but better on rank (241.3), and val and rank only agree at 0.59 over its grid. The average of the two beats both on val and rank, U shape over the weight, 0.5 best on val. -5.8 kg on val and -4.9 on rank against #17. New reference |
 
 The very first baseline run gave 213, but outliers had also been removed from `val`, so that number isn't comparable and isn't in the table.
 
@@ -57,9 +58,12 @@ uv run python -m prc_fuel.run --drop avg_vertical_rate openap_fuel --split time 
 uv run python -m prc_fuel.run --drop avg_vertical_rate openap_fuel                                 # 18
 uv run python -m prc_fuel.run --drop avg_vertical_rate openap_fuel --model xgboost                 # 19
 uv run python -m prc_fuel.run --drop avg_vertical_rate openap_fuel --model catboost                # 20
+uv run python -m prc_fuel.run --drop avg_vertical_rate openap_fuel --model blend                   # 21
 ```
 
 From the commit after #18 on, `--split time` is the default, so the random split has to be asked for with `--split random`.
+
+From #21 on, `--model catboost` uses the tuned parameters (`CATBOOST_PARAMS` in `train.py`), so #20 with CatBoost's own defaults only replays from its commit.
 
 ## Adding a row
 

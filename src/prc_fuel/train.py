@@ -46,6 +46,7 @@ class Model:
             self.model = CatBoostRegressor(
                 random_seed=42,
                 verbose=0,
+                allow_writing_files=False,
                 cat_features=list(self.categories),
                 **{**CATBOOST_PARAMS, **self.params},
             )
